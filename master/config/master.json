@@ -10,5 +10,11 @@
   "etcd的连接超时": "单位毫秒",
   "etcdDialTimeeout": 5000,
   "web页面根目录": "静态页面，前后端分离开发",
-  "webroot": "./master/webroot"
+  "webroot": "./master/webroot",
+  "mongodb地址": "常用mongodb URI",
+  "mongodbUri": "mongodb://localhost:27017",
+  "mongodb的连接超时": "单位毫秒",
+  "mongodbConnectTimeout": 5000,
+  "日志批次大小": "为了减少mongodb网络往返，打包成一批写入",
+  "jobLogBatchSize": 100
 }

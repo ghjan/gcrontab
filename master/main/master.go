@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/ghjan/gcrontab/master"
 	"github.com/ghjan/gcrontab/master/api"
 	"github.com/ghjan/gcrontab/master/config"
 	"github.com/ghjan/gcrontab/master/etcd"
@@ -46,7 +47,11 @@ func main() {
 	//读取配置文件
 	if err = config.InitConfig(confFile); err != nil {
 		goto ERR
-		return
+	}
+
+	//日志管理器
+	if err = master.InitLogMgr(); err != nil {
+		goto ERR
 	}
 
 	//初始化任务管理器

@@ -144,7 +144,7 @@ func (jobMgr *JobMgr) KillJob(name string) (err error) {
 		leaseGrantResp *clientv3.LeaseGrantResponse
 		leaseId        clientv3.LeaseID
 	)
-	killerKey = common.JOB_KILLER + name
+	killerKey = common.JOB_KILLER_DIR + name
 	if leaseGrantResp, err = jobMgr.lease.Grant(context.TODO(), 1); err != nil {
 		return
 	}
