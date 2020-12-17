@@ -11,6 +11,7 @@ require (
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
+	go.mongodb.org/mongo-driver v1.4.4
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0 // indirect
 	golang.org/x/net v0.0.0-20201209123823-ac852fbbde11 // indirect

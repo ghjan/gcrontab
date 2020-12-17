@@ -6,8 +6,12 @@ import (
 )
 
 type Config struct {
-	EtcdEndpoints    []string `json:"etcdEndpoints"`
-	EtcdDialTimeeout int      `json:"etcdDialTimeeout"`
+	EtcdEndpoints         []string `json:"etcdEndpoints"`
+	EtcdDialTimeeout      int      `json:"etcdDialTimeeout"`
+	MongodbUri            string   `json:"mongodbUri"`
+	MongodbConnectTimeout int      `json:"mongodbConnectTimeout"`
+	JobLogBatchSize       int      `json:"jobLogBatchSize"`
+	JobLogCommitTimeout   int      `json:"jobLogCommitTimeout"`
 }
 
 var (

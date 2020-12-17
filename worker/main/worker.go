@@ -47,6 +47,10 @@ func main() {
 		goto ERR
 		return
 	}
+	//启动日志协程
+	if err = worker.InitLogSink(); err != nil {
+		goto ERR
+	}
 	//加载执行器
 	if err = worker.InitExecutor(); err != nil {
 		goto ERR

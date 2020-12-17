@@ -141,14 +141,34 @@ func (scheduler Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 	}
 }
 
-func (scheduler *Scheduler) handleJobResult(jobResult *common.JobExecuteResult) {
+func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult) {
+	var (
+		jobLog *common.JobLog
+	)
 	//删除执行状态
-	delete(scheduler.jobExecutionTable, jobResult.ExecuteInfo.Job.Name)
-	fmt.Printf("任务执行完成:%s,output:%s", jobResult.ExecuteInfo.Job.Name, string(jobResult.Output))
-	if jobResult.Err != nil {
-		fmt.Printf(",error:%s", jobResult.Err.Error())
+	delete(scheduler.jobExecutionTable, result.ExecuteInfo.Job.Name)
+	//fmt.Printf("任务执行完成:%s,output:%s", result.ExecuteInfo.Job.Name, string(result.Output))
+	//生成执行日志
+	if result.Err != common.ERR_LOCK_ALREADY_REQUIRED {
+		jobLog = &common.JobLog{
+			JobName:      result.ExecuteInfo.Job.Name,
+			Command:      result.ExecuteInfo.Job.Command,
+			Output:       string(result.Output),
+			PlanTime:     result.ExecuteInfo.PlanTime.UnixNano() / 1000000, //毫秒
+			ScheduleTime: result.ExecuteInfo.RealTime.UnixNano() / 1000000,
+			StartTime:    result.StartTime.UnixNano() / 1000000,
+			EndTime:      result.EndTime.UnixNano() / 1000000,
+		}
+		if result.Err != nil {
+			jobLog.Err = result.Err.Error()
+			//fmt.Printf(",error:%s", result.Err.Error())
+		} else {
+			jobLog.Err = ""
+		}
+		//存储到mongodb(异步)
+		G_logSink.Append(jobLog)
 	}
-	fmt.Println()
+
 }
 
 //推送任务变化事件
