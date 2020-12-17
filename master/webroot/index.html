@@ -121,7 +121,7 @@
                         window.location.reload()
                     }
                 })
-                if (oldName != newName) { //名称修改了，需要删除原先的任务
+                if (oldName!="" && oldName != newName) { //名称修改了，需要删除原先的任务
                     $.ajax({
                         url: '/job/delete',
                         type: 'post',

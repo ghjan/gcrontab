@@ -6,7 +6,7 @@ import (
 	"github.com/ghjan/gcrontab/master/api"
 	"github.com/ghjan/gcrontab/master/config"
 	"github.com/ghjan/gcrontab/master/etcd"
-	"github.com/ghjan/gcrontab/master/utils"
+	"github.com/ghjan/gcrontab/pkg/utils"
 	"path/filepath"
 	"runtime"
 	"time"
@@ -65,6 +65,6 @@ func main() {
 	return
 	//异常退出
 ERR:
-	fmt.Println("error:", err)
+	fmt.Println("master main error:", err)
 
 }

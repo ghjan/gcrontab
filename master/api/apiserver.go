@@ -106,7 +106,7 @@ func handleJobSave(resp http.ResponseWriter, req *http.Request) {
 
 ERR:
 	//6.异常返回
-	fmt.Println("error:", err)
+	fmt.Println("handleJobSave error:", err)
 	if bytes, err = common.BuildResponse(-1, err.Error(), oldJob); err == nil {
 		resp.Write(bytes)
 	}
@@ -144,7 +144,7 @@ func handleJobDelete(resp http.ResponseWriter, req *http.Request) {
 	return
 ERR:
 	//6.异常返回
-	fmt.Println("error:", err)
+	fmt.Println("handleJobDelete error:", err)
 	if bytes, err = common.BuildResponse(-1, err.Error(), oldJob); err == nil {
 		resp.Write(bytes)
 	}
@@ -169,7 +169,7 @@ func handleJobList(resp http.ResponseWriter, req *http.Request) {
 	return
 ERR:
 	//6.异常返回
-	fmt.Println("error:", err)
+	fmt.Println("handleJobList error:", err)
 	if bytes, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
 		resp.Write(bytes)
 	}
@@ -203,7 +203,7 @@ func handleJobKill(resp http.ResponseWriter, req *http.Request) {
 	return
 ERR:
 	//6.异常返回
-	fmt.Println("error:", err)
+	fmt.Println("handleJobKill error:", err)
 	if bytes, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
 		resp.Write(bytes)
 	}
