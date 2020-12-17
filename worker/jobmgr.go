@@ -1,4 +1,4 @@
-package etcd
+package worker
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/ghjan/gcrontab/common"
 	"github.com/ghjan/gcrontab/worker/config"
-	"github.com/ghjan/gcrontab/worker/scheduler"
 	"time"
 )
 
@@ -57,7 +56,13 @@ func InitJobMgr() (err error) {
 	}
 	//创建一个watcher
 
-	err = G_jobMgr.WatchJobs()
+	//启动任务监听
+	if err = G_jobMgr.WatchJobs(); err != nil {
+		return
+	}
+
+	//启动killer监听
+	G_jobMgr.watchKiller()
 
 	return
 }
@@ -88,7 +93,7 @@ func (jobMgr *JobMgr) WatchJobs() (err error) {
 			jobEvent = common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
 			//吧这个job同步给scheduler（调度协程）
 			fmt.Println(*jobEvent)
-			scheduler.G_scheduler.PushJobEvent(jobEvent)
+			G_scheduler.PushJobEvent(jobEvent)
 		} else {
 			err = nil
 		}
@@ -122,9 +127,9 @@ func (jobMgr *JobMgr) WatchJobs() (err error) {
 					jobEvent = common.BuildJobEvent(common.JOB_EVENT_DELETE, job)
 				}
 				//推一个事件给scheduler
-				if jobEvent!=nil{
+				if jobEvent != nil {
 					fmt.Println(*jobEvent)
-					scheduler.G_scheduler.PushJobEvent(jobEvent)
+					G_scheduler.PushJobEvent(jobEvent)
 				}
 			}
 		}
@@ -132,4 +137,46 @@ func (jobMgr *JobMgr) WatchJobs() (err error) {
 	}()
 
 	return
+}
+
+//创建任务执行锁
+func (jobMgr *JobMgr) CreateJobLock(jobName string) (jobLock *JobLock) {
+	//返回一把锁
+	jobLock = InitJobLock(jobName, jobMgr.kv, jobMgr.lease)
+	return
+}
+
+//监听强杀任务通知
+func (jobMgr *JobMgr) watchKiller() {
+	var (
+		watchChan  clientv3.WatchChan
+		watchResp  clientv3.WatchResponse
+		watchEvent *clientv3.Event
+		job        *common.Job
+		jobEvent   *common.JobEvent
+		jobName    string
+	)
+	//监听 /cron/killer/ 目录
+	go func() { //监听协程
+		//监听 /cron/killer/ 目录的变化
+		watchChan = jobMgr.watcher.Watch(context.TODO(), common.JOB_KILLER_DIR, clientv3.WithPrefix())
+		//处理监听事件
+		for watchResp = range watchChan {
+			for _, watchEvent = range watchResp.Events {
+				switch watchEvent.Type {
+				case mvccpb.PUT: //杀死任务事件
+					jobName = common.ExtractKillerName(string(watchEvent.Kv.Key))
+					job = &common.Job{Name: jobName}
+					//构建一个更新Event
+					jobEvent = common.BuildJobEvent(common.JOB_EVENT_KILL, job)
+					//事件推给scheduler
+					G_scheduler.PushJobEvent(jobEvent)
+				case mvccpb.DELETE: //killer标记过期，被自动删除
+
+				}
+			}
+		}
+
+	}()
+
 }

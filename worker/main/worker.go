@@ -4,9 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/ghjan/gcrontab/pkg/utils"
+	"github.com/ghjan/gcrontab/worker"
 	"github.com/ghjan/gcrontab/worker/config"
-	"github.com/ghjan/gcrontab/worker/etcd"
-	"github.com/ghjan/gcrontab/worker/scheduler"
 	"path/filepath"
 	"runtime"
 	"time"
@@ -48,15 +47,19 @@ func main() {
 		goto ERR
 		return
 	}
-	//启动调度器
-	if err = scheduler.InitScheduler(); err != nil {
-		goto ERR
-	}
-	//初始化任务管理器
-	if err = etcd.InitJobMgr(); err != nil {
+	//加载执行器
+	if err = worker.InitExecutor(); err != nil {
 		goto ERR
 	}
 
+	//启动调度器
+	if err = worker.InitScheduler(); err != nil {
+		goto ERR
+	}
+	//初始化任务管理器
+	if err = worker.InitJobMgr(); err != nil {
+		goto ERR
+	}
 
 	//正常退出
 	for {

@@ -1,6 +1,7 @@
 package common
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/gorhill/cronexpr"
 	"strings"
@@ -14,6 +15,21 @@ type Job struct {
 	CronExpr string `json:"cronExpr"` //cron表达式
 }
 
+//任务事件
+type JobEvent struct {
+	EventType int //任务类型 SAVE,DELETE
+	Job       *Job
+}
+
+//任务执行状态
+type JobExecuteInfo struct {
+	Job        *Job               //任务信息
+	PlanTime   time.Time          //理论上的调度时间
+	RealTime   time.Time          //实际的调度时间
+	CancelCtx  context.Context    //任务command的上下文
+	CancelFunc context.CancelFunc //用于取消command执行的cancel函数
+}
+
 //任务调度计划
 type JobSchedulePlan struct {
 	Job      *Job                 //要调度的任务信息
@@ -25,6 +41,15 @@ type Response struct {
 	Errno int         `josn:"errno"`
 	Msg   string      `josn:"msg"`
 	Data  interface{} `josn:"data"`
+}
+
+//任务执行结果
+type JobExecuteResult struct {
+	ExecuteInfo *JobExecuteInfo //执行状态
+	Output      []byte          //脚本输出
+	Err         error           //脚本错误信息
+	StartTime   time.Time       //启动时间
+	EndTime     time.Time       //结束时间
 }
 
 func BuildResponse(errno int, msg string, data interface{}) (resp []byte, err error) {
@@ -57,9 +82,9 @@ func ExtractJobName(jobKey string) (string) {
 	return strings.TrimPrefix(jobKey, JOB_SAVE_DIR)
 }
 
-type JobEvent struct {
-	EventType int //任务类型 SAVE,DELETE
-	Job       *Job
+//从etcd的key中提取杀死任务名
+func ExtractKillerName(kilertKey string) (string) {
+	return strings.TrimPrefix(kilertKey, JOB_KILLER_DIR)
 }
 
 func BuildJobEvent(eventType int, job *Job) (jobEvent *JobEvent) {
@@ -83,5 +108,16 @@ func BuildJobSchedulerPlan(job *Job) (jobSchedulePlan *JobSchedulePlan, err erro
 		Expr:     expr,
 		NextTime: expr.Next(time.Now()),
 	}
+	return
+}
+
+func BuildJobExecuteInfo(jobSchedulePlan *JobSchedulePlan) (jobExecuteInfo *JobExecuteInfo) {
+	jobExecuteInfo = &JobExecuteInfo{
+		Job:      jobSchedulePlan.Job,
+		PlanTime: jobSchedulePlan.NextTime, //计划调度时间
+		RealTime: time.Now(),               //实际调度时间
+	}
+	jobExecuteInfo.CancelCtx, jobExecuteInfo.CancelFunc = context.WithCancel(context.TODO())
+
 	return
 }
