@@ -40,6 +40,7 @@ func InitApiServer() (err error) {
 	mux.HandleFunc("/job/list", handleJobList)
 	mux.HandleFunc("/job/kill", handleJobKill)
 	mux.HandleFunc("/job/log", handleJobLog)
+	mux.HandleFunc("/worker/list", handleWorkList)
 
 	//静态文件目录
 	staticDir = http.Dir(config.G_config.Webroot)
@@ -256,6 +257,30 @@ func handleJobLog(resp http.ResponseWriter, req *http.Request) {
 ERR:
 	//6.异常返回
 	fmt.Println("handleJobLog error:", err)
+	if bytes, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
+		resp.Write(bytes)
+	}
+	return
+}
+
+//handleWorkList:查询日志接口
+func handleWorkList(resp http.ResponseWriter, req *http.Request) {
+	var (
+		workerList []string
+		err        error
+		bytes      []byte
+	)
+	if workerList, err = master.G_workerMgr.ListWorkers(); err != nil {
+		goto ERR
+	}
+	if bytes, err = common.BuildResponse(0, "success", workerList); err == nil {
+		resp.Write(bytes)
+	}
+
+	return
+ERR:
+	//6.异常返回
+	fmt.Println("handleWorkList error:", err)
 	if bytes, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
 		resp.Write(bytes)
 	}

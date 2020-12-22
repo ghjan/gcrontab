@@ -148,3 +148,8 @@ func BuildJobExecuteInfo(jobSchedulePlan *JobSchedulePlan) (jobExecuteInfo *JobE
 
 	return
 }
+
+//从etcd的key中提取worker的IP
+func ExtractWorkerIP(key string) (string) {
+	return strings.TrimPrefix(key, JOB_WORKERS_DIR)
+}
